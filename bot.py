@@ -14,9 +14,25 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 user_messages = {}
 
 START_TEXT = """
-Hey 👋
+🔥 Welcome to SheTexted
 
-Send me her message, and I’ll help you understand what it means and what to reply.
+Send a screenshot or copy your chat.
+
+I’ll analyze:
+• what she actually means
+• her interest level
+• red flags & mixed signals
+• best reply for your goal
+• what NOT to say
+
+Works for:
+• texting
+• dating apps
+• ex situations
+• ghosting
+• flirting
+
+👇 Send your chat
 """
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -32,6 +48,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [
             InlineKeyboardButton("Flirty 🖤", callback_data="flirty"),
             InlineKeyboardButton("Playful 😏", callback_data="playful"),
+        ],
+        [
             InlineKeyboardButton("Confident 🔥", callback_data="confident"),
             InlineKeyboardButton("Chill 🙂", callback_data="chill"),
         ]
@@ -46,7 +64,7 @@ async def handle_vibe(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    await query.message.reply_text("Thinking...")
+    loading_msg = await query.message.reply_text("Analyzing conversation...")
 
     user_id = query.from_user.id
     vibe = query.data
@@ -55,20 +73,30 @@ async def handle_vibe(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prompt = f"""
 You are SheTexted.
 
-Return ONLY this exact format:
+Return ONLY this exact format with emojis and spacing:
 
-What her message likely means:
+🔥 What her message likely means:
 Write a natural explanation in maximum 2 sentences about her vibe, intentions, and emotional tone.
 Sound emotionally intelligent and human, not robotic.
 
-Best reply:
+❤️ Interest level:
+Give a realistic interest level from 1-10 and explain it in 1 short sentence.
+
+🚩 Red flags or mixed signals:
+If there are any mixed signals, emotional distance, manipulation, dry texting, inconsistency, or possible red flags — explain briefly in 1-2 sentences.
+If there are none, say: "No major red flags."
+
+💬 Best reply:
 "1 natural confident text."
 
-Another option:
+✨ Another option:
 "1 natural confident text."
 
-Why it works:
+🧠 Why it works:
 Write 1-3 short sentences explaining why these replies work emotionally and socially.
+
+📩 Next step:
+Write exactly: "Send another chat for analysis ✨"
 
 Rules:
 - No other sections
@@ -82,6 +110,8 @@ Rules:
 - Slightly detailed but easy to read
 - Match the requested vibe
 - Do not overanalyze too much
+- Always end with the Next step section
+- Interest level must feel realistic, not overly positive
 
 Message:
 {user_text}
@@ -93,9 +123,11 @@ Vibe:
     response = client.responses.create(
         model="gpt-4.1-mini",
         input=prompt,
-        temperature=0.4,
-        max_output_tokens=180
+        temperature=0.7,
+        max_output_tokens=260
     )
+
+    await loading_msg.delete()
 
     await query.message.reply_text(response.output_text)
 
