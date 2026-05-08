@@ -79,13 +79,6 @@ Return ONLY this exact format with emojis and spacing:
 Write a natural explanation in maximum 2 sentences about her vibe, intentions, and emotional tone.
 Sound emotionally intelligent and human, not robotic.
 
-❤️ Interest level:
-Give a realistic interest level from 1-10 and explain it in 1 short sentence.
-
-🚩 Red flags or mixed signals:
-If there are any mixed signals, emotional distance, manipulation, dry texting, inconsistency, or possible red flags — explain briefly in 1-2 sentences.
-If there are none, say: "No major red flags."
-
 💬 Best reply:
 "1 natural confident text."
 
