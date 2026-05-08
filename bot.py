@@ -30,8 +30,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboard = [
         [
-            InlineKeyboardButton("Playful 😭", callback_data="playful"),
-            InlineKeyboardButton("Confident 😏", callback_data="confident"),
+            InlineKeyboardButton("Flirty 🖤", callback_data="flirty"),
+            InlineKeyboardButton("Playful 😏", callback_data="playful"),
+            InlineKeyboardButton("Confident 🔥", callback_data="confident"),
             InlineKeyboardButton("Chill 🙂", callback_data="chill"),
         ]
     ]
