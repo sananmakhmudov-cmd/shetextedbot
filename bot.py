@@ -1,5 +1,7 @@
 import os
 import base64
+import json
+from datetime import datetime
 from dotenv import load_dotenv
 from openai import OpenAI
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -21,8 +23,12 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 user_messages = {}
 
+STATS_FILE = "stats.json"
+ADMIN_ID = 669799237
+
+
 START_TEXT = """
-🔥 Welcome to SheTexted
+💬 Welcome to SheTexted
 
 Send a screenshot or copy your chat.
 
@@ -43,8 +49,80 @@ Works for:
 👇 Send your chat
 """
 
+
+def load_stats():
+    try:
+        with open(STATS_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return {
+            "users": [],
+            "messages_today": 0,
+            "new_users_today": 0,
+            "total_messages": 0,
+            "last_reset": ""
+        }
+
+
+def save_stats(stats):
+    with open(STATS_FILE, "w") as f:
+        json.dump(stats, f)
+
+
+def reset_daily_stats(stats):
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    if stats.get("last_reset") != today:
+        stats["messages_today"] = 0
+        stats["new_users_today"] = 0
+        stats["last_reset"] = today
+
+    if "total_messages" not in stats:
+        stats["total_messages"] = 0
+
+    return stats
+
+
+def track_user(user_id):
+    stats = load_stats()
+    stats = reset_daily_stats(stats)
+
+    stats["messages_today"] += 1
+    stats["total_messages"] += 1
+
+    if user_id not in stats["users"]:
+        stats["users"].append(user_id)
+        stats["new_users_today"] += 1
+
+    save_stats(stats)
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    track_user(user_id)
+
     await update.message.reply_text(START_TEXT)
+
+
+async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+
+    if user_id != ADMIN_ID:
+        return
+
+    stats_data = load_stats()
+    stats_data = reset_daily_stats(stats_data)
+    save_stats(stats_data)
+
+    text = (
+        f"📊 SheTexted Stats\n\n"
+        f"👥 Total users: {len(stats_data['users'])}\n"
+        f"🆕 New today: {stats_data['new_users_today']}\n"
+        f"💬 Messages today: {stats_data['messages_today']}\n"
+        f"📩 Total messages: {stats_data['total_messages']}"
+    )
+
+    await update.message.reply_text(text)
 
 
 async def extract_text_from_image(photo_file):
@@ -76,6 +154,7 @@ async def extract_text_from_image(photo_file):
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
+    track_user(user_id)
 
     text = ""
 
@@ -115,9 +194,11 @@ async def handle_vibe(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
+    user_id = query.from_user.id
+    track_user(user_id)
+
     loading_msg = await query.message.reply_text("Analyzing conversation...")
 
-    user_id = query.from_user.id
     vibe = query.data
     user_text = user_messages.get(user_id, "")
 
@@ -176,6 +257,7 @@ def main():
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("stats", stats))
 
     app.add_handler(
         MessageHandler(
