@@ -218,7 +218,15 @@ def get_access_text(user_id):
     return f"Free · {remaining}/{FREE_DAILY_LIMIT} analyses left today"
 
 
-async def show_paywall(update_or_message, context: ContextTypes.DEFAULT_TYPE):
+def after_answer_keyboard():
+    keyboard = [
+        [InlineKeyboardButton("🔁 Give 3 more options", callback_data="regenerate_options")],
+        [InlineKeyboardButton("🧠 What she really means", callback_data="meaning_only")],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+async def show_paywall(message, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("Pro Weekly — $3.99/week", callback_data="buy_weekly")],
         [InlineKeyboardButton("⭐ Pro Monthly — $9.99/month", callback_data="buy_monthly")],
@@ -238,7 +246,7 @@ Unlock SheTexted Pro:
 ⭐ Monthly is the best value.
 """
 
-    await update_or_message.reply_text(
+    await message.reply_text(
         text,
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
@@ -386,30 +394,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    user_id = query.from_user.id
-    track_user(user_id)
-
-    if query.data == "buy_weekly":
-        await send_invoice(query, context, "weekly")
-        return
-
-    if query.data == "buy_monthly":
-        await send_invoice(query, context, "monthly")
-        return
-
-    if not can_use_bot(user_id):
-        await show_paywall(query.message, context)
-        return
-
-    loading_msg = await query.message.reply_text("Analyzing conversation...")
-
-    vibe = query.data
-    user_text = user_messages.get(user_id, "")
-
+async def generate_main_answer(user_text, vibe):
     prompt = f"""
 You are SheTexted — a socially intelligent AI texting assistant.
 
@@ -435,13 +420,13 @@ Return ONLY this exact format with emojis and spacing:
 🔥 What her message likely means:
 Write 2 natural sentences. Explain her vibe, emotional tone, interest level, and social dynamic. Be specific to the message. Avoid generic phrases like "she seems interested" unless the chat clearly shows that.
 
-💬 Best reply:
+🖤 Best Reply:
 "Write 1 short natural text the user can send. Make it confident, human, and matched to the selected vibe."
 
-✨ Bolder option:
+🔥 Bolder Option:
 "Write 1 slightly more playful or confident version. It should still feel natural and not too much."
 
-🌿 Chill option:
+🙂 Chill Option:
 "Write 1 calm, low-pressure version. It should feel easy, smooth, and not needy."
 
 🧠 Why it works:
@@ -451,6 +436,7 @@ Write 2 short sentences explaining why these replies work emotionally and social
 Send another chat for analysis ✨
 
 Rules:
+- Always give exactly 3 reply options
 - No other sections
 - No bullet points
 - No long essays
@@ -467,7 +453,6 @@ Rules:
 - If context is unclear, say it naturally without overexplaining
 - Always give replies that can actually be copied and sent
 - Always end with the Next step section exactly as shown
-- Always give exactly 3 reply options
 
 Chat:
 {user_text}
@@ -477,14 +462,159 @@ Chat:
         model="gpt-4.1-mini",
         input=prompt,
         temperature=0.85,
+        max_output_tokens=340
+    )
+
+    return response.output_text
+
+
+async def generate_more_options(user_text):
+    prompt = f"""
+You are SheTexted — a modern AI texting assistant.
+
+Give exactly 3 fresh reply options for this chat.
+
+Format exactly:
+
+🖤 Best Reply:
+"Write 1 short confident reply."
+
+🔥 Bolder Option:
+"Write 1 more playful/flirty reply."
+
+🙂 Chill Option:
+"Write 1 calm low-pressure reply."
+
+Rules:
+- Casual English
+- Make all 3 options different
+- No explanations
+- No bullet points
+- Replies must be copy-paste ready
+- Do not sound needy
+- Do not sound aggressive
+- Do not overdo it
+
+Chat:
+{user_text}
+"""
+
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=prompt,
+        temperature=0.9,
+        max_output_tokens=240
+    )
+
+    return response.output_text
+
+
+async def generate_meaning_only(user_text):
+    prompt = f"""
+You are SheTexted — a socially intelligent AI texting assistant.
+
+Analyze what her message really means.
+
+Return exactly this format:
+
+🧠 What she really means:
+Write 3-4 natural sentences explaining her vibe, emotional tone, interest level, and hidden intention.
+
+🚩 Watch out for:
+Write 1 short sentence about any red flag, mixed signal, low effort, or unclear energy. If there is no red flag, say that calmly.
+
+✅ Best move:
+Write 1 short sentence explaining what the user should do next.
+
+Rules:
+- Casual English
+- Be honest
+- If her energy is low, say it calmly
+- If she seems interested, explain why
+- Do not overhype
+- Do not sound robotic
+- No long essay
+
+Chat:
+{user_text}
+"""
+
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=prompt,
+        temperature=0.75,
         max_output_tokens=260
     )
+
+    return response.output_text
+
+
+async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    user_id = query.from_user.id
+    track_user(user_id)
+
+    if query.data == "buy_weekly":
+        await send_invoice(query, context, "weekly")
+        return
+
+    if query.data == "buy_monthly":
+        await send_invoice(query, context, "monthly")
+        return
+
+    if not can_use_bot(user_id):
+        await show_paywall(query.message, context)
+        return
+
+    user_text = user_messages.get(user_id, "")
+
+    if not user_text:
+        await query.message.reply_text("Send me a chat first 🖤")
+        return
+
+    if query.data == "regenerate_options":
+        loading_msg = await query.message.reply_text("Generating 3 more options...")
+        output = await generate_more_options(user_text)
+
+        if not has_active_pro(user_id):
+            increment_free_usage(user_id)
+
+        await loading_msg.delete()
+        await query.message.reply_text(
+            output,
+            reply_markup=after_answer_keyboard()
+        )
+        return
+
+    if query.data == "meaning_only":
+        loading_msg = await query.message.reply_text("Reading the vibe...")
+        output = await generate_meaning_only(user_text)
+
+        if not has_active_pro(user_id):
+            increment_free_usage(user_id)
+
+        await loading_msg.delete()
+        await query.message.reply_text(
+            output,
+            reply_markup=after_answer_keyboard()
+        )
+        return
+
+    loading_msg = await query.message.reply_text("Analyzing conversation...")
+
+    vibe = query.data
+    output = await generate_main_answer(user_text, vibe)
 
     if not has_active_pro(user_id):
         increment_free_usage(user_id)
 
     await loading_msg.delete()
-    await query.message.reply_text(response.output_text)
+    await query.message.reply_text(
+        output,
+        reply_markup=after_answer_keyboard()
+    )
 
 
 async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
