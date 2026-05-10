@@ -418,23 +418,22 @@ The user selected this vibe: {vibe}
 Return ONLY this exact format with emojis and spacing:
 
 🔥 What her message likely means:
-For short/simple chats, write 3 natural sentences.
-For long, emotional, confusing, or mixed-signal chats, write 5-7 natural sentences.
-Go deeper than surface-level meaning. Explain her emotional tone, interest level, effort, possible intention, mixed signals, and what the user should understand before replying.
+Write 2-3 natural sentences. Explain her vibe, emotional tone, interest level, and social dynamic. Keep it clear but not too long.
 
 🖤 Best Reply:
-"Write 1 short natural text the user can send. Make it confident, human, and matched to the selected vibe."
+If the chat is short/simple, write 1 short natural text the user can send.
+If the chat is long, emotional, or needs a thoughtful answer, write a longer copy-paste-ready message with 2-4 sentences.
 
 🔥 Bolder Option:
-"Write 1 slightly more playful or confident version. It should still feel natural and not too much."
+If the chat is short/simple, write 1 slightly more playful or confident version.
+If the chat is long, emotional, or needs a thoughtful answer, write a longer copy-paste-ready message with 2-4 sentences, a little more confident or bold.
 
 🙂 Chill Option:
-"Write 1 calm, low-pressure version. It should feel easy, smooth, and not needy."
+If the chat is short/simple, write 1 calm, low-pressure version.
+If the chat is long, emotional, or needs a thoughtful answer, write a longer copy-paste-ready message with 2-4 sentences, softer and more relaxed.
 
 🧠 Why it works:
-For simple situations, write 2-3 sentences.
-For complex situations, write 4-5 sentences explaining why these replies work emotionally and socially.
-Explain how the reply keeps confidence, avoids neediness, creates curiosity, or lowers pressure when relevant.
+Write 2-3 short sentences explaining why these replies work emotionally and socially.
 
 📩 Next step:
 Send another chat for analysis ✨
@@ -457,6 +456,9 @@ Rules:
 - If context is unclear, say it naturally without overexplaining
 - Always give replies that can actually be copied and sent
 - Always end with the Next step section exactly as shown
+- Keep analysis sections short: 2-3 sentences max
+- Only the 3 reply options can become longer when the chat needs it
+- For long or emotional chats, reply options can be 2-4 sentences each
 
 Chat:
 {user_text}
