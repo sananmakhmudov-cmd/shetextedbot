@@ -1,15 +1,16 @@
 import os
 import base64
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from openai import OpenAI
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, LabeledPrice
 from telegram.ext import (
     Application,
     CommandHandler,
     MessageHandler,
     CallbackQueryHandler,
+    PreCheckoutQueryHandler,
     ContextTypes,
     filters,
 )
@@ -24,8 +25,13 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 user_messages = {}
 
 STATS_FILE = "stats.json"
+ACCESS_FILE = "access.json"
+
 ADMIN_ID = 669799237
 
+TRIAL_DAYS = 3
+WEEKLY_STARS = 200
+MONTHLY_STARS = 500
 
 START_TEXT = """
 💬 Welcome to SheTexted
@@ -50,23 +56,39 @@ Works for:
 """
 
 
-def load_stats():
+def load_json(file_name, default):
     try:
-        with open(STATS_FILE, "r") as f:
+        with open(file_name, "r") as f:
             return json.load(f)
     except:
-        return {
-            "users": [],
-            "messages_today": 0,
-            "new_users_today": 0,
-            "total_messages": 0,
-            "last_reset": ""
-        }
+        return default
+
+
+def save_json(file_name, data):
+    with open(file_name, "w") as f:
+        json.dump(data, f)
+
+
+def load_stats():
+    return load_json(STATS_FILE, {
+        "users": [],
+        "messages_today": 0,
+        "new_users_today": 0,
+        "total_messages": 0,
+        "last_reset": ""
+    })
 
 
 def save_stats(stats):
-    with open(STATS_FILE, "w") as f:
-        json.dump(stats, f)
+    save_json(STATS_FILE, stats)
+
+
+def load_access():
+    return load_json(ACCESS_FILE, {})
+
+
+def save_access(access):
+    save_json(ACCESS_FILE, access)
 
 
 def reset_daily_stats(stats):
@@ -97,11 +119,125 @@ def track_user(user_id):
     save_stats(stats)
 
 
+def start_trial_if_needed(user_id):
+    access = load_access()
+    uid = str(user_id)
+
+    if uid not in access:
+        expires_at = datetime.now() + timedelta(days=TRIAL_DAYS)
+        access[uid] = {
+            "plan": "trial",
+            "expires_at": expires_at.isoformat()
+        }
+        save_access(access)
+
+
+def has_active_access(user_id):
+    access = load_access()
+    uid = str(user_id)
+
+    if uid not in access:
+        return False
+
+    expires_at = datetime.fromisoformat(access[uid]["expires_at"])
+    return datetime.now() < expires_at
+
+
+def extend_access(user_id, days, plan):
+    access = load_access()
+    uid = str(user_id)
+
+    now = datetime.now()
+
+    if uid in access:
+        current_expiry = datetime.fromisoformat(access[uid]["expires_at"])
+        start_date = max(now, current_expiry)
+    else:
+        start_date = now
+
+    new_expiry = start_date + timedelta(days=days)
+
+    access[uid] = {
+        "plan": plan,
+        "expires_at": new_expiry.isoformat()
+    }
+
+    save_access(access)
+
+
+def get_access_text(user_id):
+    access = load_access()
+    uid = str(user_id)
+
+    if uid not in access:
+        return "No active plan"
+
+    plan = access[uid]["plan"]
+    expires_at = datetime.fromisoformat(access[uid]["expires_at"])
+    days_left = max(0, (expires_at - datetime.now()).days)
+
+    return f"{plan.title()} · {days_left} days left"
+
+
+async def show_paywall(update_or_query, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("Pro Weekly — $3.99/week", callback_data="buy_weekly")],
+        [InlineKeyboardButton("⭐ Pro Monthly — $9.99/month", callback_data="buy_monthly")],
+    ]
+
+    text = """
+Your free access has ended 🖤
+
+Unlock SheTexted Pro:
+
+• Instant AI replies
+• Chat screenshot analysis
+• Flirty, playful, confident & chill replies
+• Deep message meaning
+• Dating app support
+
+⭐ Monthly is the best value.
+"""
+
+    if hasattr(update_or_query, "message") and update_or_query.message:
+        await update_or_query.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
+    else:
+        await update_or_query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
+
+
+async def send_invoice(query, context: ContextTypes.DEFAULT_TYPE, plan):
+    if plan == "weekly":
+        title = "SheTexted Pro Weekly"
+        description = "7 days of SheTexted Pro access"
+        payload = "weekly_pro"
+        stars = WEEKLY_STARS
+    else:
+        title = "SheTexted Pro Monthly"
+        description = "30 days of SheTexted Pro access"
+        payload = "monthly_pro"
+        stars = MONTHLY_STARS
+
+    await context.bot.send_invoice(
+        chat_id=query.message.chat_id,
+        title=title,
+        description=description,
+        payload=payload,
+        provider_token="",
+        currency="XTR",
+        prices=[LabeledPrice(title, stars)],
+    )
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     track_user(user_id)
+    start_trial_if_needed(user_id)
 
-    await update.message.reply_text(START_TEXT)
+    access_text = get_access_text(user_id)
+
+    await update.message.reply_text(
+        START_TEXT + f"\n\n✅ Your access: {access_text}"
+    )
 
 
 async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -114,12 +250,24 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     stats_data = reset_daily_stats(stats_data)
     save_stats(stats_data)
 
+    access = load_access()
+    active_users = 0
+
+    for uid in access:
+        try:
+            expires_at = datetime.fromisoformat(access[uid]["expires_at"])
+            if datetime.now() < expires_at:
+                active_users += 1
+        except:
+            pass
+
     text = (
         f"📊 SheTexted Stats\n\n"
         f"👥 Total users: {len(stats_data['users'])}\n"
         f"🆕 New today: {stats_data['new_users_today']}\n"
         f"💬 Messages today: {stats_data['messages_today']}\n"
-        f"📩 Total messages: {stats_data['total_messages']}"
+        f"📩 Total messages: {stats_data['total_messages']}\n"
+        f"💎 Active access users: {active_users}"
     )
 
     await update.message.reply_text(text)
@@ -154,6 +302,11 @@ async def extract_text_from_image(photo_file):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     track_user(user_id)
+    start_trial_if_needed(user_id)
+
+    if not has_active_access(user_id):
+        await show_paywall(update, context)
+        return
 
     text = ""
 
@@ -189,12 +342,25 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def handle_vibe(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
     user_id = query.from_user.id
     track_user(user_id)
+    start_trial_if_needed(user_id)
+
+    if query.data == "buy_weekly":
+        await send_invoice(query, context, "weekly")
+        return
+
+    if query.data == "buy_monthly":
+        await send_invoice(query, context, "monthly")
+        return
+
+    if not has_active_access(user_id):
+        await show_paywall(query.message, context)
+        return
 
     loading_msg = await query.message.reply_text("Analyzing conversation...")
 
@@ -271,11 +437,42 @@ Chat:
     await query.message.reply_text(response.output_text)
 
 
+async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.pre_checkout_query
+    await query.answer(ok=True)
+
+
+async def successful_payment_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    payment = update.message.successful_payment
+
+    if payment.invoice_payload == "weekly_pro":
+        extend_access(user_id, 7, "weekly")
+        await update.message.reply_text(
+            "✅ Payment received!\n\nSheTexted Pro Weekly is active for 7 days 🖤"
+        )
+
+    elif payment.invoice_payload == "monthly_pro":
+        extend_access(user_id, 30, "monthly")
+        await update.message.reply_text(
+            "✅ Payment received!\n\nSheTexted Pro Monthly is active for 30 days 🖤"
+        )
+
+
 def main():
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("stats", stats))
+
+    app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
+
+    app.add_handler(
+        MessageHandler(
+            filters.SUCCESSFUL_PAYMENT,
+            successful_payment_callback
+        )
+    )
 
     app.add_handler(
         MessageHandler(
@@ -284,7 +481,7 @@ def main():
         )
     )
 
-    app.add_handler(CallbackQueryHandler(handle_vibe))
+    app.add_handler(CallbackQueryHandler(handle_callback))
 
     print("SheTexted bot is running...")
     app.run_polling()

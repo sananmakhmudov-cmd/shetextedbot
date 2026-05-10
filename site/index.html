@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SheTexted</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: Inter, Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 90px;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .nav-btn {
+      color: #000;
+      background: #fff;
+      text-decoration: none;
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 60px;
+      align-items: center;
+      min-height: 650px;
+    }
+
+    .tag {
+      color: #9ca3af;
+      font-size: 14px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(58px, 9vw, 112px);
+      line-height: 0.88;
+      letter-spacing: -0.08em;
+      margin-bottom: 28px;
+    }
+
+    .subtitle {
+      color: #9ca3af;
+      font-size: 22px;
+      line-height: 1.4;
+      max-width: 520px;
+      margin-bottom: 34px;
+    }
+
+    .cta {
+      display: inline-block;
+      color: #000;
+      background: #fff;
+      text-decoration: none;
+      padding: 18px 28px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .mockup {
+      background: #0b0b0b;
+      border: 1px solid #222;
+      border-radius: 36px;
+      padding: 22px;
+      box-shadow: 0 0 80px rgba(255,255,255,0.08);
+    }
+
+    .chat {
+      background: #111;
+      border-radius: 28px;
+      padding: 22px;
+    }
+
+    .bubble {
+      padding: 14px 16px;
+      border-radius: 18px;
+      margin-bottom: 14px;
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .girl {
+      background: #242424;
+      color: #fff;
+    }
+
+    .ai {
+      background: #fff;
+      color: #000;
+    }
+
+    section {
+      padding: 80px 0;
+    }
+
+    .section-title {
+      font-size: 42px;
+      letter-spacing: -0.05em;
+      margin-bottom: 28px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      background: #0b0b0b;
+      border: 1px solid #222;
+      border-radius: 24px;
+      padding: 24px;
+    }
+
+    .card h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      color: #9ca3af;
+      line-height: 1.5;
+    }
+
+    .modes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .mode {
+      background: #111;
+      border: 1px solid #222;
+      padding: 16px 22px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    footer {
+      color: #6b7280;
+      padding: 50px 0 20px;
+      text-align: center;
+    }
+
+    @media (max-width: 800px) {
+      header {
+        margin-bottom: 50px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 64px;
+      }
+
+      .subtitle {
+        font-size: 19px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="logo">SheTexted</div>
+      <a class="nav-btn" href="https://t.me/SheTextedBot" target="_blank">Open Bot</a>
+    </header>
+
+    <main class="hero">
+      <div>
+        <div class="tag">AI Texting Assistant</div>
+        <h1>Stop<br>overthinking<br>texts.</h1>
+        <p class="subtitle">
+          SheTexted analyzes your chat and tells you exactly what to reply — confident, natural, and matched to the vibe.
+        </p>
+        <a class="cta" href="https://t.me/SheTextedBot" target="_blank">Open Telegram Bot</a>
+      </div>
+
+      <div class="mockup">
+        <div class="chat">
+          <div class="bubble girl">haha maybe 😭</div>
+          <div class="bubble ai">
+            🔥 She’s not rejecting you — she’s keeping the door open but testing your energy.
+          </div>
+          <div class="bubble ai">
+            💬 Reply:<br>
+            “Then I guess I still have a chance 😌”
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <section>
+      <h2 class="section-title">How it works</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>Send your chat</h3>
+          <p>Upload a screenshot or copy the conversation directly into the bot.</p>
+        </div>
+        <div class="card">
+          <h3>Get the read</h3>
+          <p>Understand her tone, interest level, mixed signals, and emotional dynamic.</p>
+        </div>
+        <div class="card">
+          <h3>Reply better</h3>
+          <p>Get natural replies that sound confident, smooth, and human.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Choose your vibe</h2>
+      <div class="modes">
+        <div class="mode">Flirty 🖤</div>
+        <div class="mode">Playful 😏</div>
+        <div class="mode">Confident 🔥</div>
+        <div class="mode">Chill 🙂</div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Built for modern dating.</h2>
+      <a class="cta" href="https://t.me/SheTextedBot" target="_blank">Try SheTexted Free</a>
+    </section>
+
+    <footer>
+      © 2026 SheTexted
+    </footer>
+  </div>
+</body>
+</html>
