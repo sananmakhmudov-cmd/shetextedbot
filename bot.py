@@ -26,10 +26,11 @@ user_messages = {}
 
 STATS_FILE = "stats.json"
 ACCESS_FILE = "access.json"
+USAGE_FILE = "usage.json"
 
 ADMIN_ID = 669799237
 
-TRIAL_DAYS = 3
+FREE_DAILY_LIMIT = 3
 WEEKLY_STARS = 200
 MONTHLY_STARS = 500
 
@@ -45,12 +46,7 @@ I’ll analyze:
 • flirting signals
 • mixed energy
 
-Works for:
-• texting
-• dating apps
-• ex situations
-• ghosting
-• flirting
+Free users get 3 analyses per day.
 
 👇 Send your chat
 """
@@ -91,8 +87,20 @@ def save_access(access):
     save_json(ACCESS_FILE, access)
 
 
+def load_usage():
+    return load_json(USAGE_FILE, {})
+
+
+def save_usage(usage):
+    save_json(USAGE_FILE, usage)
+
+
+def today_str():
+    return datetime.now().strftime("%Y-%m-%d")
+
+
 def reset_daily_stats(stats):
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = today_str()
 
     if stats.get("last_reset") != today:
         stats["messages_today"] = 0
@@ -119,28 +127,18 @@ def track_user(user_id):
     save_stats(stats)
 
 
-def start_trial_if_needed(user_id):
-    access = load_access()
-    uid = str(user_id)
-
-    if uid not in access:
-        expires_at = datetime.now() + timedelta(days=TRIAL_DAYS)
-        access[uid] = {
-            "plan": "trial",
-            "expires_at": expires_at.isoformat()
-        }
-        save_access(access)
-
-
-def has_active_access(user_id):
+def has_active_pro(user_id):
     access = load_access()
     uid = str(user_id)
 
     if uid not in access:
         return False
 
-    expires_at = datetime.fromisoformat(access[uid]["expires_at"])
-    return datetime.now() < expires_at
+    try:
+        expires_at = datetime.fromisoformat(access[uid]["expires_at"])
+        return datetime.now() < expires_at
+    except:
+        return False
 
 
 def extend_access(user_id, days, plan):
@@ -150,8 +148,11 @@ def extend_access(user_id, days, plan):
     now = datetime.now()
 
     if uid in access:
-        current_expiry = datetime.fromisoformat(access[uid]["expires_at"])
-        start_date = max(now, current_expiry)
+        try:
+            current_expiry = datetime.fromisoformat(access[uid]["expires_at"])
+            start_date = max(now, current_expiry)
+        except:
+            start_date = now
     else:
         start_date = now
 
@@ -165,32 +166,70 @@ def extend_access(user_id, days, plan):
     save_access(access)
 
 
-def get_access_text(user_id):
-    access = load_access()
+def get_free_usage(user_id):
+    usage = load_usage()
     uid = str(user_id)
+    today = today_str()
 
-    if uid not in access:
-        return "No active plan"
+    if uid not in usage or usage[uid].get("date") != today:
+        usage[uid] = {
+            "date": today,
+            "count": 0
+        }
+        save_usage(usage)
 
-    plan = access[uid]["plan"]
-    expires_at = datetime.fromisoformat(access[uid]["expires_at"])
-    days_left = max(0, (expires_at - datetime.now()).days)
-
-    return f"{plan.title()} · {days_left} days left"
+    return usage[uid]["count"]
 
 
-async def show_paywall(update_or_query, context: ContextTypes.DEFAULT_TYPE):
+def increment_free_usage(user_id):
+    usage = load_usage()
+    uid = str(user_id)
+    today = today_str()
+
+    if uid not in usage or usage[uid].get("date") != today:
+        usage[uid] = {
+            "date": today,
+            "count": 0
+        }
+
+    usage[uid]["count"] += 1
+    save_usage(usage)
+
+
+def can_use_bot(user_id):
+    if has_active_pro(user_id):
+        return True
+
+    used = get_free_usage(user_id)
+    return used < FREE_DAILY_LIMIT
+
+
+def get_access_text(user_id):
+    if has_active_pro(user_id):
+        access = load_access()
+        uid = str(user_id)
+        plan = access[uid]["plan"]
+        expires_at = datetime.fromisoformat(access[uid]["expires_at"])
+        days_left = max(0, (expires_at - datetime.now()).days)
+        return f"Pro {plan.title()} · {days_left} days left"
+
+    used = get_free_usage(user_id)
+    remaining = max(0, FREE_DAILY_LIMIT - used)
+    return f"Free · {remaining}/{FREE_DAILY_LIMIT} analyses left today"
+
+
+async def show_paywall(update_or_message, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("Pro Weekly — $3.99/week", callback_data="buy_weekly")],
         [InlineKeyboardButton("⭐ Pro Monthly — $9.99/month", callback_data="buy_monthly")],
     ]
 
     text = """
-Your free access has ended 🖤
+You’ve used your 3 free analyses today 🖤
 
 Unlock SheTexted Pro:
 
-• Instant AI replies
+• Unlimited AI replies
 • Chat screenshot analysis
 • Flirty, playful, confident & chill replies
 • Deep message meaning
@@ -199,10 +238,10 @@ Unlock SheTexted Pro:
 ⭐ Monthly is the best value.
 """
 
-    if hasattr(update_or_query, "message") and update_or_query.message:
-        await update_or_query.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
-    else:
-        await update_or_query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
+    await update_or_message.reply_text(
+        text,
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
 
 async def send_invoice(query, context: ContextTypes.DEFAULT_TYPE, plan):
@@ -231,7 +270,6 @@ async def send_invoice(query, context: ContextTypes.DEFAULT_TYPE, plan):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     track_user(user_id)
-    start_trial_if_needed(user_id)
 
     access_text = get_access_text(user_id)
 
@@ -251,13 +289,13 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_stats(stats_data)
 
     access = load_access()
-    active_users = 0
+    active_pro_users = 0
 
     for uid in access:
         try:
             expires_at = datetime.fromisoformat(access[uid]["expires_at"])
             if datetime.now() < expires_at:
-                active_users += 1
+                active_pro_users += 1
         except:
             pass
 
@@ -267,7 +305,7 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"🆕 New today: {stats_data['new_users_today']}\n"
         f"💬 Messages today: {stats_data['messages_today']}\n"
         f"📩 Total messages: {stats_data['total_messages']}\n"
-        f"💎 Active access users: {active_users}"
+        f"💎 Active Pro users: {active_pro_users}"
     )
 
     await update.message.reply_text(text)
@@ -302,10 +340,9 @@ async def extract_text_from_image(photo_file):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     track_user(user_id)
-    start_trial_if_needed(user_id)
 
-    if not has_active_access(user_id):
-        await show_paywall(update, context)
+    if not can_use_bot(user_id):
+        await show_paywall(update.message, context)
         return
 
     text = ""
@@ -336,8 +373,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
     ]
 
+    remaining = max(0, FREE_DAILY_LIMIT - get_free_usage(user_id))
+
+    if has_active_pro(user_id):
+        usage_text = "Pro access active 💎"
+    else:
+        usage_text = f"Free analyses left today: {remaining}/{FREE_DAILY_LIMIT}"
+
     await update.message.reply_text(
-        "What vibe do you want?",
+        f"What vibe do you want?\n\n{usage_text}",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
@@ -348,7 +392,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_id = query.from_user.id
     track_user(user_id)
-    start_trial_if_needed(user_id)
 
     if query.data == "buy_weekly":
         await send_invoice(query, context, "weekly")
@@ -358,7 +401,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_invoice(query, context, "monthly")
         return
 
-    if not has_active_access(user_id):
+    if not can_use_bot(user_id):
         await show_paywall(query.message, context)
         return
 
@@ -432,6 +475,9 @@ Chat:
         temperature=0.85,
         max_output_tokens=260
     )
+
+    if not has_active_pro(user_id):
+        increment_free_usage(user_id)
 
     await loading_msg.delete()
     await query.message.reply_text(response.output_text)
