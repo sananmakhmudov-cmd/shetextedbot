@@ -418,22 +418,23 @@ The user selected this vibe: {vibe}
 Return ONLY this exact format with emojis and spacing:
 
 🔥 What her message likely means:
-Write 2-3 natural sentences. Explain her vibe, emotional tone, interest level, and social dynamic. Keep it clear but not too long.
+For short/simple chats, write 3 natural sentences.
+For long, emotional, confusing, or mixed-signal chats, write 5-7 natural sentences.
+Go deeper than surface-level meaning. Explain her emotional tone, interest level, effort, possible intention, mixed signals, and what the user should understand before replying.
 
 🖤 Best Reply:
-If the chat is short/simple, write 1 short natural text the user can send.
-If the chat is long, emotional, or needs a thoughtful answer, write a longer copy-paste-ready message with 2-4 sentences.
+"Write 1 short natural text the user can send. Make it confident, human, and matched to the selected vibe."
 
 🔥 Bolder Option:
-If the chat is short/simple, write 1 slightly more playful or confident version.
-If the chat is long, emotional, or needs a thoughtful answer, write a longer copy-paste-ready message with 2-4 sentences, a little more confident or bold.
+"Write 1 slightly more playful or confident version. It should still feel natural and not too much."
 
 🙂 Chill Option:
-If the chat is short/simple, write 1 calm, low-pressure version.
-If the chat is long, emotional, or needs a thoughtful answer, write a longer copy-paste-ready message with 2-4 sentences, softer and more relaxed.
+"Write 1 calm, low-pressure version. It should feel easy, smooth, and not needy."
 
 🧠 Why it works:
-Write 2-3 short sentences explaining why these replies work emotionally and socially.
+For simple situations, write 2-3 sentences.
+For complex situations, write 4-5 sentences explaining why these replies work emotionally and socially.
+Explain how the reply keeps confidence, avoids neediness, creates curiosity, or lowers pressure when relevant.
 
 📩 Next step:
 Send another chat for analysis ✨
