@@ -438,8 +438,11 @@ Write 2 natural sentences. Explain her vibe, emotional tone, interest level, and
 💬 Best reply:
 "Write 1 short natural text the user can send. Make it confident, human, and matched to the selected vibe."
 
-✨ Another option:
-"Write 1 different short natural text. It should feel fresh, not just a reworded version."
+✨ Bolder option:
+"Write 1 slightly more playful or confident version. It should still feel natural and not too much."
+
+🌿 Chill option:
+"Write 1 calm, low-pressure version. It should feel easy, smooth, and not needy."
 
 🧠 Why it works:
 Write 2 short sentences explaining why these replies work emotionally and socially. Mention confidence, pressure, curiosity, tension, playfulness, or clarity only when relevant.
@@ -464,6 +467,7 @@ Rules:
 - If context is unclear, say it naturally without overexplaining
 - Always give replies that can actually be copied and sent
 - Always end with the Next step section exactly as shown
+- Always give exactly 3 reply options
 
 Chat:
 {user_text}
