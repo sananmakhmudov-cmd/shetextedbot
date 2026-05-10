@@ -418,7 +418,9 @@ The user selected this vibe: {vibe}
 Return ONLY this exact format with emojis and spacing:
 
 🔥 What her message likely means:
-Write 2 natural sentences. Explain her vibe, emotional tone, interest level, and social dynamic. Be specific to the message. Avoid generic phrases like "she seems interested" unless the chat clearly shows that.
+For short/simple chats, write 3 natural sentences.
+For long, emotional, confusing, or mixed-signal chats, write 5-7 natural sentences.
+Go deeper than surface-level meaning. Explain her emotional tone, interest level, effort, possible intention, mixed signals, and what the user should understand before replying.
 
 🖤 Best Reply:
 "Write 1 short natural text the user can send. Make it confident, human, and matched to the selected vibe."
@@ -430,7 +432,9 @@ Write 2 natural sentences. Explain her vibe, emotional tone, interest level, and
 "Write 1 calm, low-pressure version. It should feel easy, smooth, and not needy."
 
 🧠 Why it works:
-Write 2 short sentences explaining why these replies work emotionally and socially. Mention confidence, pressure, curiosity, tension, playfulness, or clarity only when relevant.
+For simple situations, write 2-3 sentences.
+For complex situations, write 4-5 sentences explaining why these replies work emotionally and socially.
+Explain how the reply keeps confidence, avoids neediness, creates curiosity, or lowers pressure when relevant.
 
 📩 Next step:
 Send another chat for analysis ✨
@@ -462,7 +466,7 @@ Chat:
         model="gpt-4.1-mini",
         input=prompt,
         temperature=0.85,
-        max_output_tokens=340
+        max_output_tokens=520
     )
 
     return response.output_text
@@ -533,7 +537,8 @@ Rules:
 - If she seems interested, explain why
 - Do not overhype
 - Do not sound robotic
-- No long essay
+- Give deeper analysis when the chat has enough context
+- Do not force short answers when the situation is complex
 
 Chat:
 {user_text}
@@ -543,7 +548,7 @@ Chat:
         model="gpt-4.1-mini",
         input=prompt,
         temperature=0.75,
-        max_output_tokens=260
+        max_output_tokens=520
     )
 
     return response.output_text
