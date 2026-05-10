@@ -221,7 +221,6 @@ def get_access_text(user_id):
 def after_answer_keyboard():
     keyboard = [
         [InlineKeyboardButton("🔁 Give 3 more options", callback_data="regenerate_options")],
-        [InlineKeyboardButton("🧠 What she really means", callback_data="meaning_only")],
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -512,7 +511,7 @@ Chat:
         model="gpt-4.1-mini",
         input=prompt,
         temperature=0.9,
-        max_output_tokens=240
+        max_output_tokens=520
     )
 
     return response.output_text
@@ -553,7 +552,7 @@ Chat:
         model="gpt-4.1-mini",
         input=prompt,
         temperature=0.75,
-        max_output_tokens=520
+        max_output_tokens=320
     )
 
     return response.output_text
