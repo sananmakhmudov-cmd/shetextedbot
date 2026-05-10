@@ -432,7 +432,10 @@ If the chat is short/simple, write 1 calm, low-pressure version.
 If the chat is long, emotional, or needs a thoughtful answer, write a longer copy-paste-ready message with 2-4 sentences, softer and more relaxed.
 
 🧠 Why it works:
-Write 2-3 short sentences explaining why these replies work emotionally and socially.
+Write exactly 2 natural sentences explaining the overall emotional dynamic and why these replies work socially.
+Do NOT explain each option separately.
+Do NOT mention “bolder option” or “chill option”.
+Keep it short, smooth, and human.
 
 📩 Next step:
 Send another chat for analysis ✨
