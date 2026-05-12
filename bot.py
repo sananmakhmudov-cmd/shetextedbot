@@ -49,11 +49,11 @@ Send:
 • dating app convo
 
 Get:
-
 • best reply
 • emotional analysis
 • better texting energy
 • what she actually means
+
 
 
 👇 Send your chat
@@ -180,10 +180,7 @@ def get_free_usage(user_id):
     today = today_str()
 
     if uid not in usage or usage[uid].get("date") != today:
-        usage[uid] = {
-            "date": today,
-            "count": 0
-        }
+        usage[uid] = {"date": today, "count": 0}
         save_usage(usage)
 
     return usage[uid]["count"]
@@ -195,10 +192,7 @@ def increment_free_usage(user_id):
     today = today_str()
 
     if uid not in usage or usage[uid].get("date") != today:
-        usage[uid] = {
-            "date": today,
-            "count": 0
-        }
+        usage[uid] = {"date": today, "count": 0}
 
     usage[uid]["count"] += 1
     save_usage(usage)
@@ -229,41 +223,67 @@ def get_access_text(user_id):
 def extract_best_reply(text):
     try:
         start = text.index("🖤 Best Reply:") + len("🖤 Best Reply:")
-
-        possible_ends = [
-            "✨ Another Option:",
-            "🧠 Why it works:",
-            "📩 Next step:"
-        ]
-
-        end_positions = []
-        for marker in possible_ends:
-            if marker in text[start:]:
-                end_positions.append(text.index(marker, start))
-
-        end = min(end_positions) if end_positions else len(text)
-
+        end = text.index("✨ Another Option:")
         best_reply = text[start:end].strip()
 
         if best_reply.startswith('"') and best_reply.endswith('"'):
             best_reply = best_reply[1:-1]
 
         return best_reply.strip()
-
     except:
         return ""
 
 
-def after_answer_keyboard(best_reply=""):
+def extract_another_option(text):
+    try:
+        start = text.index("✨ Another Option:") + len("✨ Another Option:")
+
+        possible_ends = [
+            "🧠 Why it works:",
+            "📩 Next step:"
+        ]
+
+        end_positions = []
+
+        for marker in possible_ends:
+            if marker in text[start:]:
+                end_positions.append(text.index(marker, start))
+
+        end = min(end_positions) if end_positions else len(text)
+
+        another_option = text[start:end].strip()
+
+        if another_option.startswith('"') and another_option.endswith('"'):
+            another_option = another_option[1:-1]
+
+        return another_option.strip()
+    except:
+        return ""
+
+
+def after_answer_keyboard(best_reply="", another_option=""):
     keyboard = []
 
+    copy_buttons = []
+
     if best_reply:
-        keyboard.append([
+        copy_buttons.append(
             InlineKeyboardButton(
                 text="📋 Copy Best Reply",
                 copy_text=CopyTextButton(best_reply)
             )
-        ])
+        )
+
+    if another_option:
+        copy_buttons.append(
+            InlineKeyboardButton(
+                text="📋 Copy Another Option",
+                copy_text=CopyTextButton(another_option)
+            )
+        )
+
+    if copy_buttons:
+        keyboard.append(copy_buttons)
 
     keyboard.append([
         InlineKeyboardButton("🔁 Give 2 more options", callback_data="regenerate_options")
@@ -626,7 +646,10 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await loading_msg.delete()
         await query.message.reply_text(
             output,
-            reply_markup=after_answer_keyboard(extract_best_reply(output))
+            reply_markup=after_answer_keyboard(
+                extract_best_reply(output),
+                extract_another_option(output)
+            )
         )
         return
 
@@ -638,9 +661,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             increment_free_usage(user_id)
 
         await loading_msg.delete()
-        await query.message.reply_text(
-            output
-        )
+        await query.message.reply_text(output)
         return
 
     loading_msg = await query.message.reply_text("Analyzing conversation...")
@@ -654,7 +675,10 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await loading_msg.delete()
     await query.message.reply_text(
         output,
-        reply_markup=after_answer_keyboard(extract_best_reply(output))
+        reply_markup=after_answer_keyboard(
+            extract_best_reply(output),
+            extract_another_option(output)
+        )
     )
 
 
