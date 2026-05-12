@@ -4,7 +4,13 @@ import json
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from openai import OpenAI
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, LabeledPrice
+from telegram import (
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    LabeledPrice,
+    CopyTextButton,
+)
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -37,16 +43,16 @@ MONTHLY_STARS = 500
 START_TEXT = """
 💬 Welcome to SheTexted
 
-Send a screenshot or copy your chat.
+Send:
+• screenshot
+• copied chat
+• dating app convo
 
-I’ll analyze:
-• what she actually means
-• best reply for your goal
-• emotional tone
-• flirting signals
-• mixed energy
+Get:
+• best reply
+• emotional analysis
+• better texting energy
 
-Free users get 3 analyses per day.
 
 👇 Send your chat
 """
@@ -218,10 +224,49 @@ def get_access_text(user_id):
     return f"Free · {remaining}/{FREE_DAILY_LIMIT} analyses left today"
 
 
-def after_answer_keyboard():
-    keyboard = [
-        [InlineKeyboardButton("🔁 Give 2 more options", callback_data="regenerate_options")],
-    ]
+def extract_best_reply(text):
+    try:
+        start = text.index("🖤 Best Reply:") + len("🖤 Best Reply:")
+
+        possible_ends = [
+            "✨ Another Option:",
+            "🧠 Why it works:",
+            "📩 Next step:"
+        ]
+
+        end_positions = []
+        for marker in possible_ends:
+            if marker in text[start:]:
+                end_positions.append(text.index(marker, start))
+
+        end = min(end_positions) if end_positions else len(text)
+
+        best_reply = text[start:end].strip()
+
+        if best_reply.startswith('"') and best_reply.endswith('"'):
+            best_reply = best_reply[1:-1]
+
+        return best_reply.strip()
+
+    except:
+        return ""
+
+
+def after_answer_keyboard(best_reply=""):
+    keyboard = []
+
+    if best_reply:
+        keyboard.append([
+            InlineKeyboardButton(
+                text="📋 Copy Best Reply",
+                copy_text=CopyTextButton(best_reply)
+            )
+        ])
+
+    keyboard.append([
+        InlineKeyboardButton("🔁 Give 2 more options", callback_data="regenerate_options")
+    ])
+
     return InlineKeyboardMarkup(keyboard)
 
 
@@ -434,21 +479,20 @@ Rules:
 - ONLY give 2 reply options total
 - NEVER write "Bolder Option"
 - NEVER write "Chill Option"
+- The "What her message likely means" section must ALWAYS be exactly 2 sentences
+- Keep the analysis compact and fast to read
+- Avoid long explanations
 - No bullet points
 - Casual natural English
 - Sound human
 - Avoid cringe
 - Avoid neediness
 - Avoid overexplaining
-- Keep explanations short
 - Make replies copy-paste ready
 - If her energy is low, acknowledge it calmly
 - If she is warm/flirty, match it smoothly
 - Keep overall output cleaner and faster to read
 - Always end with the Next step section exactly as shown
-- The "What her message likely means" section must ALWAYS be exactly 2 sentences
-- Keep the analysis compact and fast to read
-- Avoid long explanations
 
 Chat:
 {user_text}
@@ -580,7 +624,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await loading_msg.delete()
         await query.message.reply_text(
             output,
-            reply_markup=after_answer_keyboard()
+            reply_markup=after_answer_keyboard(extract_best_reply(output))
         )
         return
 
@@ -593,8 +637,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await loading_msg.delete()
         await query.message.reply_text(
-            output,
-            reply_markup=after_answer_keyboard()
+            output
         )
         return
 
@@ -609,7 +652,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await loading_msg.delete()
     await query.message.reply_text(
         output,
-        reply_markup=after_answer_keyboard()
+        reply_markup=after_answer_keyboard(extract_best_reply(output))
     )
 
 
