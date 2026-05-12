@@ -54,7 +54,6 @@ Get:
 • what she actually means
 
 
-
 👇 Send your chat
 """
 
