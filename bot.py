@@ -9,7 +9,6 @@ from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     LabeledPrice,
-    CopyTextButton,
 )
 from telegram.ext import (
     Application,
@@ -220,74 +219,10 @@ def get_access_text(user_id):
     return f"Free · {remaining}/{FREE_DAILY_LIMIT} analyses left today"
 
 
-def extract_best_reply(text):
-    try:
-        start = text.index("🖤 Best Reply:") + len("🖤 Best Reply:")
-        end = text.index("✨ Another Option:")
-        best_reply = text[start:end].strip()
-
-        if best_reply.startswith('"') and best_reply.endswith('"'):
-            best_reply = best_reply[1:-1]
-
-        return best_reply.strip()
-    except:
-        return ""
-
-
-def extract_another_option(text):
-    try:
-        start = text.index("✨ Another Option:") + len("✨ Another Option:")
-
-        possible_ends = [
-            "🧠 Why it works:",
-            "📩 Next step:"
-        ]
-
-        end_positions = []
-
-        for marker in possible_ends:
-            if marker in text[start:]:
-                end_positions.append(text.index(marker, start))
-
-        end = min(end_positions) if end_positions else len(text)
-
-        another_option = text[start:end].strip()
-
-        if another_option.startswith('"') and another_option.endswith('"'):
-            another_option = another_option[1:-1]
-
-        return another_option.strip()
-    except:
-        return ""
-
-
-def after_answer_keyboard(best_reply="", another_option=""):
-    keyboard = []
-
-    copy_buttons = []
-
-    if best_reply:
-        copy_buttons.append(
-            InlineKeyboardButton(
-                text="📋 Copy Best Reply",
-                copy_text=CopyTextButton(best_reply)
-            )
-        )
-
-    if another_option:
-        copy_buttons.append(
-            InlineKeyboardButton(
-                text="📋 Copy Another Option",
-                copy_text=CopyTextButton(another_option)
-            )
-        )
-
-    if copy_buttons:
-        keyboard.append(copy_buttons)
-
-    keyboard.append([
-        InlineKeyboardButton("🔁 Give 2 more options", callback_data="regenerate_options")
-    ])
+def after_answer_keyboard():
+    keyboard = [
+        [InlineKeyboardButton("🔁 Give 2 more options", callback_data="regenerate_options")]
+    ]
 
     return InlineKeyboardMarkup(keyboard)
 
@@ -305,7 +240,7 @@ Unlock SheTexted Pro:
 
 • Unlimited AI replies
 • Chat screenshot analysis
-• Flirty, playful, confident & chill replies
+• Flirty, playful, confident replies
 • Deep message meaning
 • Dating app support
 
@@ -646,10 +581,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await loading_msg.delete()
         await query.message.reply_text(
             output,
-            reply_markup=after_answer_keyboard(
-                extract_best_reply(output),
-                extract_another_option(output)
-            )
+            reply_markup=after_answer_keyboard()
         )
         return
 
@@ -675,10 +607,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await loading_msg.delete()
     await query.message.reply_text(
         output,
-        reply_markup=after_answer_keyboard(
-            extract_best_reply(output),
-            extract_another_option(output)
-        )
+        reply_markup=after_answer_keyboard()
     )
 
 
