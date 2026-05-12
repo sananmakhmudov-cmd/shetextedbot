@@ -234,17 +234,17 @@ async def show_paywall(message, context: ContextTypes.DEFAULT_TYPE):
     ]
 
     text = """
-You’ve used your 3 free analyses today 🖤
+You’ve used your 3 free replies today 🖤
 
 Unlock SheTexted Pro:
 
-• Unlimited AI replies
-• Chat screenshot analysis
-• Flirty, playful, confident replies
-• Deep message meaning
-• Dating app support
+• Unlimited reply generation
+• Screenshot & chat analysis
+• Better texting energy
+• Smarter, smoother replies
+• Dating app conversation help
 
-⭐ Monthly is the best value.
+⭐ Most users choose Monthly
 """
 
     await message.reply_text(
