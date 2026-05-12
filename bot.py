@@ -220,7 +220,7 @@ def get_access_text(user_id):
 
 def after_answer_keyboard():
     keyboard = [
-        [InlineKeyboardButton("🔁 Give 3 more options", callback_data="regenerate_options")],
+        [InlineKeyboardButton("🔁 Give 2 more options", callback_data="regenerate_options")],
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -408,59 +408,43 @@ Your personality:
 - never manipulative
 - never pickup-artist style
 
-Your job:
-Analyze the emotional dynamics of the chat, the hidden intention, attraction level, tension, effort, and the best social move.
-Sound like a smart friend who understands texting, dating apps, flirting, mixed signals, ghosting, exes, and situationships.
-
 The user selected this vibe: {vibe}
 
-Return ONLY this exact format with emojis and spacing:
+Return ONLY this exact format:
 
 🔥 What her message likely means:
-Write 2-3 natural sentences. Explain her vibe, emotional tone, interest level, and social dynamic. Keep it clear but not too long.
+Write 2-3 natural sentences explaining her vibe, emotional tone, attraction level, and social dynamic.
 
 🖤 Best Reply:
-If the chat is short/simple, write 1 short natural text the user can send.
-If the chat is long, emotional, or needs a thoughtful answer, write a longer copy-paste-ready message with 2-4 sentences.
+Write the strongest reply the user should send.
+If the situation is emotional or long, replies can be 2-4 sentences.
 
-🔥 Bolder Option:
-If the chat is short/simple, write 1 slightly more playful or confident version.
-If the chat is long, emotional, or needs a thoughtful answer, write a longer copy-paste-ready message with 2-4 sentences, a little more confident or bold.
-
-🙂 Chill Option:
-If the chat is short/simple, write 1 calm, low-pressure version.
-If the chat is long, emotional, or needs a thoughtful answer, write a longer copy-paste-ready message with 2-4 sentences, softer and more relaxed.
+✨ Another Option:
+Write 1 alternative version with slightly different energy.
+If the situation is emotional or long, replies can be 2-4 sentences.
 
 🧠 Why it works:
-Write exactly 2 natural sentences explaining the overall emotional dynamic and why these replies work socially.
-Do NOT explain each option separately.
-Do NOT mention “bolder option” or “chill option”.
-Keep it short, smooth, and human.
+Write ONLY 1 short sentence explaining why the replies work socially.
 
 📩 Next step:
 Send another chat for analysis ✨
 
 Rules:
-- Always give exactly 3 reply options
-- No other sections
+- ONLY give 2 reply options total
+- NEVER write "Bolder Option"
+- NEVER write "Chill Option"
 - No bullet points
-- No long essays
-- Casual English
-- Sound like a real person, not ChatGPT
-- Do not overhype
-- Do not say "high value"
-- Do not be needy
-- Do not be aggressive
-- Do not make the user look desperate
-- If her energy is low, do not pretend it is high
-- If she is dry, call it out calmly
-- If she is warm, make the reply smooth and confident
-- If context is unclear, say it naturally without overexplaining
-- Always give replies that can actually be copied and sent
+- Casual natural English
+- Sound human
+- Avoid cringe
+- Avoid neediness
+- Avoid overexplaining
+- Keep explanations short
+- Make replies copy-paste ready
+- If her energy is low, acknowledge it calmly
+- If she is warm/flirty, match it smoothly
+- Keep overall output cleaner and faster to read
 - Always end with the Next step section exactly as shown
-- Keep analysis sections short: 2-3 sentences max
-- Only the 3 reply options can become longer when the chat needs it
-- For long or emotional chats, reply options can be 2-4 sentences each
 
 Chat:
 {user_text}
@@ -470,7 +454,7 @@ Chat:
         model="gpt-4.1-mini",
         input=prompt,
         temperature=0.85,
-        max_output_tokens=520
+        max_output_tokens=320
     )
 
     return response.output_text
@@ -480,31 +464,27 @@ async def generate_more_options(user_text):
     prompt = f"""
 You are SheTexted — a modern AI texting assistant.
 
-Give exactly 3 fresh reply options for this chat.
+Give exactly 2 fresh reply options for this chat.
 
-Format exactly:
+Return ONLY this exact format:
 
 🖤 Best Reply:
-"Write 1 short confident reply."
+Write 1 strong confident reply.
 
-🔥 Bolder Option:
-"Write 1 more playful/flirty reply."
-
-🙂 Chill Option:
-"Write 1 calm low-pressure reply."
+✨ Another Option:
+Write 1 alternative reply with different energy.
 
 Rules:
 - Casual English
-- Make all 3 options different
+- Make both options feel different
 - No explanations
 - No bullet points
 - Replies must be copy-paste ready
-- Do not sound needy
-- Do not sound aggressive
-- Do not overdo it
-- Keep analysis sections short: 2-3 sentences max
-- Only the 3 reply options can become longer when the chat needs it
-- For long or emotional chats, reply options can be 2-4 sentences each
+- Avoid cringe
+- Avoid sounding needy
+- Avoid sounding aggressive
+- Sound smooth and human
+- For emotional chats, replies can be slightly longer
 
 Chat:
 {user_text}
@@ -514,7 +494,7 @@ Chat:
         model="gpt-4.1-mini",
         input=prompt,
         temperature=0.9,
-        max_output_tokens=520
+        max_output_tokens=320
     )
 
     return response.output_text
