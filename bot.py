@@ -413,7 +413,8 @@ The user selected this vibe: {vibe}
 Return ONLY this exact format:
 
 🔥 What her message likely means:
-Write 2-3 natural sentences explaining her vibe, emotional tone, attraction level, and social dynamic.
+Write EXACTLY 2 short natural sentences explaining her vibe and emotional tone.
+Keep it concise, sharp, and easy to read.
 
 🖤 Best Reply:
 Write the strongest reply the user should send.
@@ -445,6 +446,9 @@ Rules:
 - If she is warm/flirty, match it smoothly
 - Keep overall output cleaner and faster to read
 - Always end with the Next step section exactly as shown
+- The "What her message likely means" section must ALWAYS be exactly 2 sentences
+- Keep the analysis compact and fast to read
+- Avoid long explanations
 
 Chat:
 {user_text}
