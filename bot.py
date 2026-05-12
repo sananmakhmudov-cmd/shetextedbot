@@ -567,7 +567,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if query.data == "regenerate_options":
-        loading_msg = await query.message.reply_text("Generating 3 more options...")
+        loading_msg = await query.message.reply_text("Generating 2 more options...")
         output = await generate_more_options(user_text)
 
         if not has_active_pro(user_id):
