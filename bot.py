@@ -466,6 +466,12 @@ Reply style rules:
 - If the chat is dry, create an easy hook without trying too hard
 - Keep the full output clean and fast to read
 - Always end with the Next step section exactly as shown
+- Avoid poetic or movie-like romantic lines
+- Avoid overly smooth or perfectly written flirting
+- Replies should feel like real texting between young people
+- Prefer playful tension over deep romance
+- Make replies feel screenshot-worthy and socially realistic
+- Do not sound like a romance novel
 
 Chat:
 {user_text}
