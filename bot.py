@@ -28,6 +28,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 user_messages = {}
+user_last_outputs = {}
 
 STATS_FILE = "stats.json"
 ACCESS_FILE = "access.json"
@@ -218,8 +219,39 @@ def get_access_text(user_id):
     return f"Free · {remaining}/{FREE_DAILY_LIMIT} analyses left today"
 
 
+def extract_best_reply(text):
+    try:
+        start = text.index("🖤 Best Reply:") + len("🖤 Best Reply:")
+        end = text.index("✨ Another Option:")
+        return text[start:end].strip().strip('"')
+    except:
+        return ""
+
+
+def extract_another_option(text):
+    try:
+        start = text.index("✨ Another Option:") + len("✨ Another Option:")
+
+        possible_ends = ["🧠 Why it works:", "📩 Next step:"]
+        end_positions = []
+
+        for marker in possible_ends:
+            if marker in text[start:]:
+                end_positions.append(text.index(marker, start))
+
+        end = min(end_positions) if end_positions else len(text)
+
+        return text[start:end].strip().strip('"')
+    except:
+        return ""
+
+
 def after_answer_keyboard():
     keyboard = [
+        [
+            InlineKeyboardButton("📋 Best Reply", callback_data="copy_best_reply"),
+            InlineKeyboardButton("📋 Another Option", callback_data="copy_another_option"),
+        ],
         [InlineKeyboardButton("🔁 Give 2 more options", callback_data="regenerate_options")]
     ]
 
@@ -398,32 +430,18 @@ async def generate_main_answer(user_text, vibe):
     prompt = f"""
 You are SheTexted — a socially intelligent AI texting assistant.
 
-Your personality:
-- emotionally sharp
-- modern dating-aware
-- confident but not cringe
-- direct but not rude
-- playful when appropriate
-- never robotic
-- never overly therapeutic
-- never manipulative
-- never pickup-artist style
-
 The user selected this vibe: {vibe}
 
 Return ONLY this exact format:
 
 🔥 What her message likely means:
 Write EXACTLY 2 short natural sentences explaining her vibe and emotional tone.
-Keep it concise, sharp, and easy to read.
 
 🖤 Best Reply:
 Write the strongest reply the user should send.
-If the situation is emotional or long, replies can be 2-4 sentences.
 
 ✨ Another Option:
 Write 1 alternative version with slightly different energy.
-If the situation is emotional or long, replies can be 2-4 sentences.
 
 🧠 Why it works:
 Write ONLY 1 short sentence explaining why the replies work socially.
@@ -433,22 +451,12 @@ Send another chat for analysis ✨
 
 Rules:
 - ONLY give 2 reply options total
-- NEVER write "Bolder Option"
-- NEVER write "Chill Option"
-- The "What her message likely means" section must ALWAYS be exactly 2 sentences
-- Keep the analysis compact and fast to read
-- Avoid long explanations
-- No bullet points
 - Casual natural English
 - Sound human
 - Avoid cringe
 - Avoid neediness
-- Avoid overexplaining
+- Keep answers concise
 - Make replies copy-paste ready
-- If her energy is low, acknowledge it calmly
-- If she is warm/flirty, match it smoothly
-- Keep overall output cleaner and faster to read
-- Always end with the Next step section exactly as shown
 
 Chat:
 {user_text}
@@ -480,15 +488,8 @@ Write 1 alternative reply with different energy.
 
 Rules:
 - Casual English
-- Make both options feel different
 - No explanations
-- No bullet points
 - Replies must be copy-paste ready
-- Avoid cringe
-- Avoid sounding needy
-- Avoid sounding aggressive
-- Sound smooth and human
-- For emotional chats, replies can be slightly longer
 
 Chat:
 {user_text}
@@ -498,47 +499,6 @@ Chat:
         model="gpt-4.1-mini",
         input=prompt,
         temperature=0.9,
-        max_output_tokens=320
-    )
-
-    return response.output_text
-
-
-async def generate_meaning_only(user_text):
-    prompt = f"""
-You are SheTexted — a socially intelligent AI texting assistant.
-
-Analyze what her message really means.
-
-Return exactly this format:
-
-🧠 What she really means:
-Write 3-4 natural sentences explaining her vibe, emotional tone, interest level, and hidden intention.
-
-🚩 Watch out for:
-Write 1 short sentence about any red flag, mixed signal, low effort, or unclear energy. If there is no red flag, say that calmly.
-
-✅ Best move:
-Write 1 short sentence explaining what the user should do next.
-
-Rules:
-- Casual English
-- Be honest
-- If her energy is low, say it calmly
-- If she seems interested, explain why
-- Do not overhype
-- Do not sound robotic
-- Give deeper analysis when the chat has enough context
-- Do not force short answers when the situation is complex
-
-Chat:
-{user_text}
-"""
-
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input=prompt,
-        temperature=0.75,
         max_output_tokens=320
     )
 
@@ -570,29 +530,48 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text("Send me a chat first 🖤")
         return
 
+    if query.data == "copy_best_reply":
+        last_output = user_last_outputs.get(user_id, "")
+        best_reply = extract_best_reply(last_output)
+
+        if best_reply:
+            await query.message.reply_text(
+                f"`{best_reply}`",
+                parse_mode="Markdown"
+            )
+        else:
+            await query.message.reply_text("No reply found.")
+        return
+
+    if query.data == "copy_another_option":
+        last_output = user_last_outputs.get(user_id, "")
+        another_option = extract_another_option(last_output)
+
+        if another_option:
+            await query.message.reply_text(
+                f"`{another_option}`",
+                parse_mode="Markdown"
+            )
+        else:
+            await query.message.reply_text("No option found.")
+        return
+
     if query.data == "regenerate_options":
         loading_msg = await query.message.reply_text("Generating 2 more options...")
         output = await generate_more_options(user_text)
 
+        user_last_outputs[user_id] = output
+
         if not has_active_pro(user_id):
             increment_free_usage(user_id)
 
         await loading_msg.delete()
+
         await query.message.reply_text(
             output,
             reply_markup=after_answer_keyboard()
         )
-        return
 
-    if query.data == "meaning_only":
-        loading_msg = await query.message.reply_text("Reading the vibe...")
-        output = await generate_meaning_only(user_text)
-
-        if not has_active_pro(user_id):
-            increment_free_usage(user_id)
-
-        await loading_msg.delete()
-        await query.message.reply_text(output)
         return
 
     loading_msg = await query.message.reply_text("Analyzing conversation...")
@@ -600,10 +579,13 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     vibe = query.data
     output = await generate_main_answer(user_text, vibe)
 
+    user_last_outputs[user_id] = output
+
     if not has_active_pro(user_id):
         increment_free_usage(user_id)
 
     await loading_msg.delete()
+
     await query.message.reply_text(
         output,
         reply_markup=after_answer_keyboard()
