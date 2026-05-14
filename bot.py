@@ -452,7 +452,9 @@ Reply style rules:
 - Another Option should use a different energy, like softer, colder, funnier, more teasing, or more chill
 - Keep replies short, natural, and easy to copy
 - Prefer real texting language over perfect grammar
-- Use lowercase when it feels natural
+- Use natural texting capitalization
+- Most replies should start with a capital letter
+- Lowercase can be used occasionally for vibe, but not constantly
 - Emojis are allowed but do not overuse them
 - Avoid long polished sentences
 - Avoid overly articulate phrasing
@@ -466,6 +468,9 @@ Reply style rules:
 - If the chat is dry, create an easy hook without trying too hard
 - Keep the full output clean and fast to read
 - Always end with the Next step section exactly as shown
+- Do not try to make every reply clever or impressive
+- Sometimes the best reply is very simple
+- Prefer natural texting over perfect flirting
 
 Chat:
 {user_text}
