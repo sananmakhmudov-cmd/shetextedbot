@@ -422,13 +422,9 @@ Keep it sharp, casual, and easy to understand.
 
 🖤 Best Reply:
 Write the strongest reply the user should send.
-Usually keep it to 1 short sentence.
-Only use 2 short sentences if the situation is emotional or needs more care.
 
 ✨ Another Option:
 Write 1 alternative reply with noticeably different energy from Best Reply.
-Usually keep it to 1 short sentence.
-Only use 2 short sentences if the situation is emotional or needs more care.
 
 🧠 Why it works:
 Write ONLY 1 very short sentence.
@@ -472,6 +468,10 @@ Reply style rules:
 - Do not try to make every reply clever or impressive
 - Sometimes the best reply is very simple
 - Prefer natural texting over perfect flirting
+- Most replies should be 1-2 natural sentences
+- Replies can be slightly longer if it improves charm, flirting, or emotional tension
+- Do not make replies overly dry or emotionless
+- Add personality when natural
 
 Chat:
 {user_text}
