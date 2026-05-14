@@ -484,6 +484,9 @@ Reply style rules:
 - Prefer witty, playful, modern texting energy
 - Replies should feel socially sharp and screenshot-worthy  
 - Do not sound like a dating app chatbot
+- Avoid basic replies like "you made my day", "you are not so bad yourself", "you are making me blush", or "thanks"
+- For compliments, respond with playful confidence, teasing, or light tension
+- Do not overuse winky face emojis
 
 Chat:
 {user_text}
@@ -492,7 +495,7 @@ Chat:
     response = client.responses.create(
         model="gpt-4.1-mini",
         input=prompt,
-        temperature=0.92,
+        temperature=1.0,
         max_output_tokens=260
     )
 
