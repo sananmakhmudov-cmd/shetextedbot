@@ -433,6 +433,7 @@ Only use 2 short sentences if the situation is emotional or needs more care.
 🧠 Why it works:
 Write ONLY 1 very short sentence.
 Maximum 8 words.
+- Start with a capital letter
 Examples:
 playful without sounding needy
 confident but still warm
