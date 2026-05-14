@@ -418,13 +418,21 @@ Return ONLY this exact format:
 
 🔥 What her message likely means:
 Write EXACTLY 2 short natural sentences explaining her vibe and emotional tone.
-Keep it sharp, casual, and easy to understand.
+Keep it simple, casual, and human.
+Do not overanalyze short, random, unclear, or low-context messages.
+If the message is unclear, say it may be random, playful, dry, or low-context instead of inventing deep meaning.
+Avoid therapist-like or overly psychological analysis.
+Avoid phrases like "inviting a quick response", "open-ended", "emotional tone", or "deeper feelings".
 
 🖤 Best Reply:
 Write the strongest reply the user should send.
+Usually keep it to 1 short sentence.
+Only use 2 short sentences if the situation is emotional or needs more care.
 
 ✨ Another Option:
 Write 1 alternative reply with noticeably different energy from Best Reply.
+Usually keep it to 1 short sentence.
+Only use 2 short sentences if the situation is emotional or needs more care.
 
 🧠 Why it works:
 Write ONLY 1 very short sentence.
@@ -468,10 +476,9 @@ Reply style rules:
 - Do not try to make every reply clever or impressive
 - Sometimes the best reply is very simple
 - Prefer natural texting over perfect flirting
-- Most replies should be 1-2 natural sentences
-- Replies can be slightly longer if it improves charm, flirting, or emotional tension
-- Do not make replies overly dry or emotionless
-- Add personality when natural
+- Do not invent meaning when the chat is too short or unclear
+- For random words, typos, or low-context messages, keep the analysis simple and honest
+- Analysis should feel like a friend giving quick advice, not a therapist or coach
 
 Chat:
 {user_text}
@@ -511,7 +518,9 @@ Rules:
 - Sound like a real person texting, not an AI
 - Casual modern English
 - Prefer natural texting over perfect writing
-- Lowercase is okay when it feels natural
+- Use natural texting capitalization
+- Most replies should start with a capital letter
+- Lowercase can be used occasionally for vibe, but not constantly
 - Emojis are allowed but do not overuse them
 - Avoid cringe
 - Avoid sounding needy
