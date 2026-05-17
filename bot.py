@@ -548,7 +548,7 @@ Return ONLY this exact format:
 🖤 Best Reply:
 Write the strongest reply the user should send.
 
-✨ One More:
+✨ Second Option:
 Write 1 alternative reply with noticeably different energy.
 
 🧠 Why it works:
@@ -563,9 +563,9 @@ Reply style rules:
 - ONLY give 2 reply options total
 - NEVER write "Bolder Option"
 - NEVER write "Chill Option"
-- Best Reply and One More must feel clearly different
+- Best Reply and Second Option must feel clearly different
 - Best Reply should match the selected vibe: {vibe}
-- One More should use a different energy, like softer, colder, funnier, more teasing, or more chill
+- Second Option should use a different energy, like softer, colder, funnier, more teasing, or more chill
 - Keep replies short, natural, and easy to copy
 - Prefer real texting language over perfect grammar
 - Use natural texting capitalization
@@ -624,7 +624,7 @@ Return ONLY this exact format:
 🖤 Best Reply:
 Write 1 short strong reply.
 
-✨ One More:
+✨ Second Option:
 Write 1 short alternative reply with clearly different energy.
 
 Rules:
@@ -696,7 +696,7 @@ Use when the user asks what to answer, how to continue, or wants message options
 Give copy-paste ready replies. If writing actual messages, use this format:
 🖤 Best Reply:
 ...
-✨ One More:
+✨ Second Option:
 ...
 
 3) OVERTHINKING CALMING MODE
