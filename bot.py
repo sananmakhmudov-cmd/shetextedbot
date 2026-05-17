@@ -453,7 +453,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Send me a chat first 🖤")
             return
 
-        loading_msg = await update.message.reply_text("Thinking...")
+        loading_msg = await update.message.reply_text("Reading the vibe...")
 
         memory_summary = get_memory_summary(user_id)
         output = await generate_followup_answer(original_chat, followup_question, memory_summary)
@@ -783,7 +783,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    loading_msg = await query.message.reply_text("Analyzing conversation...")
+    loading_msg = await query.message.reply_text("Reading the vibe...")
 
     vibe = query.data
     output = await generate_main_answer(user_text, vibe)
