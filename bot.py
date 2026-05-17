@@ -313,6 +313,13 @@ def after_answer_keyboard():
     return InlineKeyboardMarkup(keyboard)
 
 
+def followup_keyboard():
+    keyboard = [
+        [InlineKeyboardButton("🔄 Analyze new chat", callback_data="exit_followup")]
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
 async def show_paywall(message, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("Pro Weekly — $3.99/week", callback_data="buy_weekly")],
@@ -483,7 +490,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
             await loading_msg.delete()
-            await update.message.reply_text(output)
+            await update.message.reply_text(
+                output,
+                reply_markup=followup_keyboard()
+            )
             return
 
     if not can_use_bot(user_id):
@@ -696,7 +706,12 @@ User's follow-up question:
 Your job:
 Answer like a smart, emotionally aware friend who understands texting, dating tension, mixed signals, and overthinking.
 
-Automatically choose the best mode:
+Automatically choose the best mode.
+
+IMPORTANT:
+The modes below are internal instructions only.
+Never mention mode names in the final answer.
+Never output labels like "ANALYSIS MODE", "REPLY MODE", or "OVERTHINKING CALMING MODE".
 
 1) ANALYSIS MODE
 Use when the user asks what she meant, whether she is interested, why she acted a certain way, or what is happening.
@@ -717,8 +732,13 @@ Help them avoid impulsive actions.
 Do not create false certainty.
 
 Rules:
+- NEVER mention mode names
+- NEVER output labels like "ANALYSIS MODE", "REPLY MODE", or "OVERTHINKING CALMING MODE"
 - Keep the answer short and useful
-- Usually 3-7 natural sentences
+- Usually 1-4 short natural sentences
+- Short questions should get short answers
+- Do not overexplain obvious situations
+- Avoid repeating the same point multiple times
 - Be honest if the situation is unclear
 - If she seems interested, say it clearly
 - If her energy seems low, say it calmly
@@ -755,6 +775,11 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if query.data == "buy_monthly":
         await send_invoice(query, context, "monthly")
+        return
+
+    if query.data == "exit_followup":
+        user_followup_mode[user_id] = False
+        await query.message.reply_text("🖤 Send a new chat or screenshot")
         return
 
     if not can_use_bot(user_id):
