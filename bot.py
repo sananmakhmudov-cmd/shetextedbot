@@ -470,7 +470,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await update.message.reply_text("Send me a chat first 🖤")
                 return
 
-            loading_msg = await update.message.reply_text("Reading the vibe...")
+            loading_msg = await update.message.reply_text("Thinking it through...")
 
             memory_summary = get_memory_summary(user_id)
             output = await generate_followup_answer(original_chat, followup_question, memory_summary)
