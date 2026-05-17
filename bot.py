@@ -369,7 +369,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     access_text = get_access_text(user_id)
 
     await update.message.reply_text(
-        START_TEXT + f"\n\n✅ Your access: {access_text}"
+        START_TEXT + f"\n\n✅ {access_text}"
     )
 
 
