@@ -45,17 +45,16 @@ START_TEXT = """
 💬 Welcome to SheTexted
 
 Send:
-• screenshot
-• copied chat
-• dating app convo
+• screenshots
+• dating app chats
+• dry replies
+• mixed signals
 
 Get:
-• best reply
-• emotional analysis
-• better texting energy
-• what she actually means
+• better replies
+• real texting advice
 • help when you overthink
-• follow-up advice about your situation
+• what to say next
 
 
 👇 Send your chat
@@ -514,7 +513,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if has_active_pro(user_id):
         usage_text = "Pro access active 💎"
     else:
-        usage_text = f"Free analyses left today: {remaining}/{FREE_DAILY_LIMIT}"
+        usage_text = f"✅ Free today: 3 analyses left: {remaining}/{FREE_DAILY_LIMIT}"
 
     await update.message.reply_text(
         f"What vibe do you want?\n\n{usage_text}",
