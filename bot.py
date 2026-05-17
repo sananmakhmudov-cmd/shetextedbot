@@ -545,34 +545,16 @@ Make the replies sound like a real attractive person texting naturally — not l
 
 Return ONLY this exact format:
 
-🔥 What her message likely means:
-Write EXACTLY 2 short natural sentences explaining her vibe and emotional tone.
-Keep it simple, casual, and human.
-Do not overanalyze short, random, unclear, or low-context messages.
-If the message is unclear, say it may be random, playful, dry, or low-context instead of inventing deep meaning.
-Avoid therapist-like or overly psychological analysis.
-Avoid phrases like "inviting a quick response", "open-ended", "emotional tone", or "deeper feelings".
-
 🖤 Best Reply:
 Write the strongest reply the user should send.
-Usually keep it to 1 short sentence.
-Only use 2 short sentences if the situation is emotional or needs more care.
 
-✨ Another Option:
-Write 1 alternative reply with noticeably different energy from Best Reply.
-Usually keep it to 1 short sentence.
-Only use 2 short sentences if the situation is emotional or needs more care.
+✨ One More:
+Write 1 alternative reply with noticeably different energy.
 
 🧠 Why it works:
 Write ONLY 1 very short sentence.
 Maximum 8 words.
-- Start with a capital letter
-Examples:
-playful without sounding needy
-confident but still warm
-keeps tension alive
-matches her energy smoothly
-light tease, easy follow-up
+Start with a capital letter.
 
 📩 Next step:
 Send another chat for analysis ✨
@@ -581,9 +563,9 @@ Reply style rules:
 - ONLY give 2 reply options total
 - NEVER write "Bolder Option"
 - NEVER write "Chill Option"
-- Best Reply and Another Option must feel clearly different
+- Best Reply and One More must feel clearly different
 - Best Reply should match the selected vibe: {vibe}
-- Another Option should use a different energy, like softer, colder, funnier, more teasing, or more chill
+- One More should use a different energy, like softer, colder, funnier, more teasing, or more chill
 - Keep replies short, natural, and easy to copy
 - Prefer real texting language over perfect grammar
 - Use natural texting capitalization
@@ -642,7 +624,7 @@ Return ONLY this exact format:
 🖤 Best Reply:
 Write 1 short strong reply.
 
-✨ Another Option:
+✨ One More:
 Write 1 short alternative reply with clearly different energy.
 
 Rules:
@@ -714,7 +696,7 @@ Use when the user asks what to answer, how to continue, or wants message options
 Give copy-paste ready replies. If writing actual messages, use this format:
 🖤 Best Reply:
 ...
-✨ Another Option:
+✨ One More:
 ...
 
 3) OVERTHINKING CALMING MODE
