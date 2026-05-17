@@ -28,6 +28,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 user_messages = {}
+user_followup_mode = {}
 
 STATS_FILE = "stats.json"
 ACCESS_FILE = "access.json"
@@ -220,7 +221,8 @@ def get_access_text(user_id):
 
 def after_answer_keyboard():
     keyboard = [
-        [InlineKeyboardButton("🔁 Give 2 more options", callback_data="regenerate_options")]
+        [InlineKeyboardButton("🔁 More replies", callback_data="regenerate_options")],
+        [InlineKeyboardButton("🧠 Ask about this chat", callback_data="ask_about_chat")]
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -347,6 +349,36 @@ async def extract_text_from_image(photo_file):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     track_user(user_id)
+
+    if user_followup_mode.get(user_id):
+        if not can_use_bot(user_id):
+            await show_paywall(update.message, context)
+            return
+
+        if not update.message.text:
+            await update.message.reply_text("Send your question in text 🧠")
+            return
+
+        original_chat = user_messages.get(user_id, "")
+        followup_question = update.message.text
+
+        if not original_chat:
+            user_followup_mode[user_id] = False
+            await update.message.reply_text("Send me a chat first 🖤")
+            return
+
+        loading_msg = await update.message.reply_text("Thinking...")
+
+        output = await generate_followup_answer(original_chat, followup_question)
+
+        user_followup_mode[user_id] = False
+
+        if not has_active_pro(user_id):
+            increment_free_usage(user_id)
+
+        await loading_msg.delete()
+        await update.message.reply_text(output)
+        return
 
     if not can_use_bot(user_id):
         await show_paywall(update.message, context)
@@ -552,6 +584,51 @@ Chat:
     return response.output_text
 
 
+async def generate_followup_answer(user_text, user_question):
+    prompt = f"""
+You are SheTexted — a socially intelligent texting advisor.
+
+The user already sent a dating/chat conversation.
+Now they are asking a follow-up question about that same situation.
+
+Your job:
+- answer like a smart friend who understands dating and texting
+- be direct, realistic, and emotionally aware
+- help the user understand what to do next
+- do NOT sound like a therapist
+- do NOT sound like a corporate AI assistant
+- do NOT overanalyze tiny details
+- do NOT encourage manipulation or pickup-artist tactics
+
+Rules:
+- Keep the answer short and useful
+- Usually 2-5 natural sentences
+- Be honest if the situation is unclear
+- If she seems interested, say it clearly
+- If her energy seems low, say it calmly
+- If the user is overthinking, tell them gently
+- Give practical next-step advice when useful
+- Sound human, casual, and supportive
+- Avoid long paragraphs
+- Avoid generic motivational advice
+
+Conversation:
+{user_text}
+
+User follow-up question:
+{user_question}
+"""
+
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=prompt,
+        temperature=0.9,
+        max_output_tokens=260
+    )
+
+    return response.output_text
+
+
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -575,6 +652,11 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not user_text:
         await query.message.reply_text("Send me a chat first 🖤")
+        return
+
+    if query.data == "ask_about_chat":
+        user_followup_mode[user_id] = True
+        await query.message.reply_text("Ask me anything about this chat 🧠")
         return
 
     if query.data == "regenerate_options":
