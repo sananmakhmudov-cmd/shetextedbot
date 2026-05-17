@@ -320,17 +320,16 @@ async def show_paywall(message, context: ContextTypes.DEFAULT_TYPE):
     ]
 
     text = """
-You’ve used your 3 free replies today 🖤
+🖤 You used all free analyses today.
 
-Unlock SheTexted Pro:
+Upgrade to Pro for:
+• unlimited replies
+• deeper chat advice
+• follow-up questions
+• priority access
 
-• Unlimited reply generation
-• Screenshot & chat analysis
-• Better texting energy
-• Smarter, smoother replies
-• Dating app conversation help
+✨ Unlock Pro
 
-⭐ Most users choose Monthly
 """
 
     await message.reply_text(
@@ -437,42 +436,55 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     track_user(user_id)
 
     if user_followup_mode.get(user_id):
-        if not can_use_bot(user_id):
-            await show_paywall(update.message, context)
-            return
-
-        if not update.message.text:
-            await update.message.reply_text("Send your question in text 🧠")
-            return
-
-        original_chat = user_messages.get(user_id, "")
-        followup_question = update.message.text
-
-        if not original_chat:
+        # If user sends a new screenshot while in follow-up mode,
+        # treat it as a new chat and return to normal analysis flow.
+        if update.message.photo:
             user_followup_mode[user_id] = False
-            await update.message.reply_text("Send me a chat first 🖤")
+
+        # If user sends a very long text, it is probably a new copied chat,
+        # not a follow-up question. Return to normal analysis flow.
+        elif update.message.text and len(update.message.text) > 400:
+            user_followup_mode[user_id] = False
+
+        else:
+            if not can_use_bot(user_id):
+                await show_paywall(update.message, context)
+                return
+
+            if not update.message.text:
+                await update.message.reply_text("Send your question in text 🧠")
+                return
+
+            original_chat = user_messages.get(user_id, "")
+            followup_question = update.message.text
+
+            if not original_chat:
+                user_followup_mode[user_id] = False
+                await update.message.reply_text("Send me a chat first 🖤")
+                return
+
+            loading_msg = await update.message.reply_text("Reading the vibe...")
+
+            memory_summary = get_memory_summary(user_id)
+            output = await generate_followup_answer(original_chat, followup_question, memory_summary)
+
+            # Keep follow-up mode ON so the user can ask more questions
+            # about the same chat without restarting the flow.
+            user_followup_mode[user_id] = True
+
+            if not has_active_pro(user_id):
+                increment_free_usage(user_id)
+
+            await update_user_memory(
+                user_id,
+                latest_chat=original_chat,
+                latest_question=followup_question,
+                latest_answer=output
+            )
+
+            await loading_msg.delete()
+            await update.message.reply_text(output)
             return
-
-        loading_msg = await update.message.reply_text("Reading the vibe...")
-
-        memory_summary = get_memory_summary(user_id)
-        output = await generate_followup_answer(original_chat, followup_question, memory_summary)
-
-        user_followup_mode[user_id] = False
-
-        if not has_active_pro(user_id):
-            increment_free_usage(user_id)
-
-        await update_user_memory(
-            user_id,
-            latest_chat=original_chat,
-            latest_question=followup_question,
-            latest_answer=output
-        )
-
-        await loading_msg.delete()
-        await update.message.reply_text(output)
-        return
 
     if not can_use_bot(user_id):
         await show_paywall(update.message, context)
@@ -513,7 +525,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if has_active_pro(user_id):
         usage_text = "Pro access active 💎"
     else:
-        usage_text = f"✅ Free today: 3 analyses left: {remaining}/{FREE_DAILY_LIMIT}"
+        usage_text = f"✅ Free today: {remaining}/{FREE_DAILY_LIMIT} analyses left"
 
     await update.message.reply_text(
         f"What vibe do you want?\n\n{usage_text}",
