@@ -33,6 +33,7 @@ user_followup_mode = {}
 STATS_FILE = "stats.json"
 ACCESS_FILE = "access.json"
 USAGE_FILE = "usage.json"
+MEMORY_FILE = "memory.json"
 
 ADMIN_ID = 669799237
 
@@ -53,6 +54,8 @@ Get:
 • emotional analysis
 • better texting energy
 • what she actually means
+• help when you overthink
+• follow-up advice about your situation
 
 
 👇 Send your chat
@@ -100,6 +103,90 @@ def load_usage():
 
 def save_usage(usage):
     save_json(USAGE_FILE, usage)
+
+
+def load_memory():
+    return load_json(MEMORY_FILE, {})
+
+
+def save_memory(memory):
+    save_json(MEMORY_FILE, memory)
+
+
+def get_memory_summary(user_id):
+    memory = load_memory()
+    uid = str(user_id)
+    return memory.get(uid, {}).get("summary", "")
+
+
+def save_memory_summary(user_id, summary):
+    memory = load_memory()
+    uid = str(user_id)
+
+    memory[uid] = {
+        "summary": summary.strip()[:1200],
+        "updated_at": datetime.now().isoformat()
+    }
+
+    save_memory(memory)
+
+
+async def update_user_memory(user_id, latest_chat="", latest_question="", latest_answer=""):
+    """
+    Keeps a short relationship/situation summary for continuity.
+    This makes follow-up answers feel like they remember the user's situation
+    without storing the full chat forever.
+    """
+    previous_summary = get_memory_summary(user_id)
+
+    prompt = f"""
+Update the user's dating situation memory.
+
+Write a short private summary that will help answer future questions.
+Keep only useful context:
+- who the user is talking to, if known
+- relationship status / emotional context
+- important recent events
+- user's worries or goals
+- girl's apparent energy
+- what advice was already given
+
+Rules:
+- Maximum 6 concise bullet points
+- Do not invent facts
+- Do not include irrelevant details
+- Keep it neutral and useful
+- If there is no useful context, return the previous summary
+
+Previous memory:
+{previous_summary}
+
+Latest chat/conversation:
+{latest_chat}
+
+Latest user question:
+{latest_question}
+
+Latest assistant answer:
+{latest_answer}
+"""
+
+    try:
+        response = client.responses.create(
+            model="gpt-4.1-mini",
+            input=prompt,
+            temperature=0.3,
+            max_output_tokens=180
+        )
+
+        new_summary = response.output_text.strip()
+
+        if new_summary:
+            save_memory_summary(user_id, new_summary)
+
+    except Exception:
+        # Memory should never break the main bot experience.
+        pass
 
 
 def today_str():
@@ -222,7 +309,7 @@ def get_access_text(user_id):
 def after_answer_keyboard():
     keyboard = [
         [InlineKeyboardButton("🔁 More replies", callback_data="regenerate_options")],
-        [InlineKeyboardButton("🧠 Ask about this chat", callback_data="ask_about_chat")]
+        [InlineKeyboardButton("❤️ Ask About Your Situation", callback_data="ask_about_chat")]
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -369,12 +456,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         loading_msg = await update.message.reply_text("Thinking...")
 
-        output = await generate_followup_answer(original_chat, followup_question)
+        memory_summary = get_memory_summary(user_id)
+        output = await generate_followup_answer(original_chat, followup_question, memory_summary)
 
         user_followup_mode[user_id] = False
 
         if not has_active_pro(user_id):
             increment_free_usage(user_id)
+
+        await update_user_memory(
+            user_id,
+            latest_chat=original_chat,
+            latest_question=followup_question,
+            latest_answer=output
+        )
 
         await loading_msg.delete()
         await update.message.reply_text(output)
@@ -400,6 +495,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await loading.delete()
 
     user_messages[user_id] = text
+
+    await update_user_memory(user_id, latest_chat=text)
 
     keyboard = [
         [
@@ -584,50 +681,73 @@ Chat:
     return response.output_text
 
 
-async def generate_followup_answer(user_text, user_question):
+async def generate_followup_answer(user_text, user_question, memory_summary=""):
     prompt = f"""
-You are SheTexted — a socially intelligent texting advisor.
+You are SheTexted — a socially intelligent AI for modern dating situations.
 
 The user already sent a dating/chat conversation.
 Now they are asking a follow-up question about that same situation.
 
+You have access to a short memory summary from previous interactions.
+Use it only when it clearly helps. Do not mention "memory" to the user.
+
+Previous situation memory:
+{memory_summary}
+
+Current conversation:
+{user_text}
+
+User's follow-up question:
+{user_question}
+
 Your job:
-- answer like a smart friend who understands dating and texting
-- be direct, realistic, and emotionally aware
-- help the user understand what to do next
-- do NOT sound like a therapist
-- do NOT sound like a corporate AI assistant
-- do NOT overanalyze tiny details
-- do NOT encourage manipulation or pickup-artist tactics
+Answer like a smart, emotionally aware friend who understands texting, dating tension, mixed signals, and overthinking.
+
+Automatically choose the best mode:
+
+1) ANALYSIS MODE
+Use when the user asks what she meant, whether she is interested, why she acted a certain way, or what is happening.
+Give a realistic interpretation + what it means for the situation.
+
+2) REPLY MODE
+Use when the user asks what to answer, how to continue, or wants message options.
+Give copy-paste ready replies. If writing actual messages, use this format:
+🖤 Best Reply:
+...
+✨ Another Option:
+...
+
+3) OVERTHINKING CALMING MODE
+Use when the user is anxious, wants to delete a message, worries they ruined everything, says she has not replied, thinks she has someone else, or asks for reassurance.
+First calm them down, then explain the situation, then give the safest next step.
+Help them avoid impulsive actions.
+Do not create false certainty.
 
 Rules:
 - Keep the answer short and useful
-- Usually 2-5 natural sentences
+- Usually 3-7 natural sentences
 - Be honest if the situation is unclear
 - If she seems interested, say it clearly
 - If her energy seems low, say it calmly
-- If the user is overthinking, tell them gently
-- Give practical next-step advice when useful
-- Sound human, casual, and supportive
+- Do not overanalyze tiny details
+- Do not encourage manipulation or pickup-artist tactics
+- Do not sound like a therapist
+- Do not sound like a corporate AI assistant
+- Sound human, casual, supportive, and direct
 - Avoid long paragraphs
 - Avoid generic motivational advice
-
-Conversation:
-{user_text}
-
-User follow-up question:
-{user_question}
+- If the user asks for replies, keep them natural, short, and copy-paste ready
+- If the user is overthinking, prioritize emotional steadiness over strategy
 """
 
     response = client.responses.create(
         model="gpt-4.1-mini",
         input=prompt,
-        temperature=0.9,
-        max_output_tokens=260
+        temperature=0.85,
+        max_output_tokens=420
     )
 
     return response.output_text
-
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -656,7 +776,16 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if query.data == "ask_about_chat":
         user_followup_mode[user_id] = True
-        await query.message.reply_text("Ask me anything about this chat 🧠")
+        await query.message.reply_text(
+            "Ask anything about your situation ❤️\n\n"
+            "You can ask things like:\n\n"
+            "• “What does she really mean?”\n"
+            "• “Did I mess this up?”\n"
+            "• “Should I text her again?”\n"
+            "• “She stopped replying”\n"
+            "• “I want to delete my message”\n"
+            "• “Does she still like me?”"
+        )
         return
 
     if query.data == "regenerate_options":
