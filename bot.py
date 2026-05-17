@@ -42,7 +42,7 @@ WEEKLY_STARS = 200
 MONTHLY_STARS = 500
 
 START_TEXT = """
-💬 Welcome to SheTexted
+🖤 Welcome to SheTexted
 
 Send:
 • screenshots
