@@ -517,32 +517,30 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_messages[user_id] = text
 
-    user_messages[user_id] = text
-
-keyboard = [
-    [
-        InlineKeyboardButton("Flirty 🖤", callback_data="flirty"),
-        InlineKeyboardButton("Playful 😏", callback_data="playful"),
-    ],
-    [
-        InlineKeyboardButton("Confident 🔥", callback_data="confident"),
-        InlineKeyboardButton("Chill 🙂", callback_data="chill"),
+    keyboard = [
+        [
+            InlineKeyboardButton("Flirty 🖤", callback_data="flirty"),
+            InlineKeyboardButton("Playful 😏", callback_data="playful"),
+        ],
+        [
+            InlineKeyboardButton("Confident 🔥", callback_data="confident"),
+            InlineKeyboardButton("Chill 🙂", callback_data="chill"),
+        ]
     ]
-]
 
-remaining = max(0, FREE_DAILY_LIMIT - get_free_usage(user_id))
+    remaining = max(0, FREE_DAILY_LIMIT - get_free_usage(user_id))
 
-if has_active_pro(user_id):
-    usage_text = "Pro access active 💎"
-else:
-    usage_text = f"✅ Free today: {remaining}/{FREE_DAILY_LIMIT} analyses left"
+    if has_active_pro(user_id):
+        usage_text = "Pro access active 💎"
+    else:
+        usage_text = f"✅ Free today: {remaining}/{FREE_DAILY_LIMIT} analyses left"
 
-await update.message.reply_text(
-    f"What vibe do you want?\n\n{usage_text}",
-    reply_markup=InlineKeyboardMarkup(keyboard)
-)
+    await update.message.reply_text(
+        f"What vibe do you want?\n\n{usage_text}",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
-await update_user_memory(user_id, latest_chat=text)
+    await update_user_memory(user_id, latest_chat=text)
 
 async def generate_main_answer(user_text, vibe):
     prompt = f"""
@@ -761,7 +759,7 @@ Rules:
 - Prefer phrases like "mostly", "probably", "from what I see", or "nothing clearly points to that"
 - The user may be reacting to YOUR previous answer
 - Questions like "u sure?", "really?", "why?", or "how?" usually refer to your last explanation
-- Keep conversational continuity naturally  x
+- Keep conversational continuity naturally
 - Avoid long paragraphs
 - Avoid generic motivational advice
 - If the user asks for replies, keep them natural, short, and copy-paste ready
